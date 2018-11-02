@@ -7,7 +7,7 @@ import hmac
 import urllib
 import urllib3
 
-import settings
+from config import settings
 
 urllib3.disable_warnings()
 
