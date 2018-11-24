@@ -75,11 +75,11 @@ class InstagramAPIClient(base.InstagramAPIBase):
         return self.get_user_followers(self.username_id)
 
     def get_hashtag_feed(self, hashtag_string, max_id=None):
-        url = 'feed/tag/{}/?max_id={}&rank_token={}&ranked_content=true&'.format(hashtag_string, max_id, self.rank_token)
+        url = 'feed/tag/{}/?max_id={}&rank_token={}&ranked_content=true&tab=recent'.format(hashtag_string, max_id, self.rank_token)
         return self._send_request(url)
 
     def get_hashtag_sections(self, hashtag_string, max_id=None):
-        url = 'tags/{}/sections/?max_id={}&rank_token={}&ranked_content=true&'.format(hashtag_string, max_id or '', self.rank_token)
+        url = 'tags/{}/sections/?max_id={}&rank_token={}&ranked_content=true&tab=recent'.format(hashtag_string, max_id or '', self.rank_token)
         return self._send_request(url)
 
     def get_media_info(self, media_id):

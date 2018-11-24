@@ -34,45 +34,47 @@ class RobogramCLI:
 
             more_available = feed['more_available']
             next_max_id = feed['next_max_id']
+
             for section in feed.get('sections', []):
-                medias = section['layout_content']['medias']
-                for media in medias:
-                    action_done = False
-                    media_id = media['media']['pk']
+                if section['layout_type'] == 'media_grid':
+                    medias = section['layout_content']['medias']
+                    for media in medias:
+                        action_done = False
+                        media_id = media['media']['pk']
 
-                    if 'like' in actions:
-                        if not media['media']['has_liked']:
-                            client.like(media_id)
-                            print('Media #{} from @{} liked.'.format(media['media']['pk'], media['media']['user']['username']))
-                            time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
-                            action_done = True
-                        else:
-                            print('Media #{} from @{} NOT liked. (Already liked)'.format(media['media']['pk'], media['media']['user']['username']))
+                        if 'like' in actions:
+                            if not media['media']['has_liked']:
+                                client.like(media_id)
+                                print('Media #{} from @{} liked.'.format(media['media']['pk'], media['media']['user']['username']))
+                                time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
+                                action_done = True
+                            else:
+                                print('Media #{} from @{} NOT liked. (Already liked)'.format(media['media']['pk'], media['media']['user']['username']))
 
-                    if 'comment' in actions:
-                        if client.username_id not in [comment['user_id'] for comment in media['media'].get('preview_comments', [])]:
-                            comment = random.choice(settings.COMMENTS)
-                            client.comment(media_id, comment)
-                            print('Media #{} from @{} commented: {}.'.format(media['media']['pk'], media['media']['user']['username'], comment))
-                            time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
-                            action_done = True
-                        else:
-                            print('Media #{} from @{} NOT commented. (Already commented)'.format(media['media']['pk'], media['media']['user']['username']))
+                        if 'comment' in actions:
+                            if client.username_id not in [comment['user_id'] for comment in media['media'].get('preview_comments', [])]:
+                                comment = random.choice(settings.COMMENTS)
+                                client.comment(media_id, comment)
+                                print('Media #{} from @{} commented: {}.'.format(media['media']['pk'], media['media']['user']['username'], comment))
+                                time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
+                                action_done = True
+                            else:
+                                print('Media #{} from @{} NOT commented. (Already commented)'.format(media['media']['pk'], media['media']['user']['username']))
 
-                    if 'follow' in actions:
-                        user_id = media['media']['user']['pk']
-                        following = media['media']['user']['friendship_status']['following']
-                        outgoing_request = media['media']['user']['friendship_status']['outgoing_request']
-                        if not following and not outgoing_request:
-                            client.follow(user_id)
-                            print('User @{} followed.'.format(media['media']['user']['username']))
-                            time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
-                            action_done = True
-                        else:
-                            print('User @{} NOT followed. (Already followed)'.format(media['media']['user']['username']))
-                    
-                    if action_done:
-                        posts_processed += 1
+                        if 'follow' in actions:
+                            user_id = media['media']['user']['pk']
+                            following = media['media']['user']['friendship_status']['following']
+                            outgoing_request = media['media']['user']['friendship_status']['outgoing_request']
+                            if not following and not outgoing_request:
+                                client.follow(user_id)
+                                print('User @{} followed.'.format(media['media']['user']['username']))
+                                time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
+                                action_done = True
+                            else:
+                                print('User @{} NOT followed. (Already followed)'.format(media['media']['user']['username']))
+                        
+                        if action_done:
+                            posts_processed += 1
 
         print('Task finished. {} posts processed.'.format(posts_processed))
 
