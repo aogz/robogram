@@ -75,12 +75,12 @@ class InstagramAPIClient(base.InstagramAPIBase):
         return self.get_user_followers(self.username_id)
 
     def get_hashtag_feed(self, hashtag_string, max_id=None):
-        url = 'feed/tag/{}/?max_id={}&rank_token={}&ranked_content=true&tab=recent'.format(hashtag_string, max_id, self.rank_token)
-        return self._send_request(url)
+        url = 'feed/tag/{}/?max_id={}&rank_token={}&ranked_content=true'.format(hashtag_string, max_id, self.rank_token)
+        return self._send_request(url, {'tab': 'recent'})
 
     def get_hashtag_sections(self, hashtag_string, max_id=None):
-        url = 'tags/{}/sections/?max_id={}&rank_token={}&ranked_content=true&tab=recent'.format(hashtag_string, max_id or '', self.rank_token)
-        return self._send_request(url)
+        url = 'tags/{}/sections/?max_id={}&rank_token={}&ranked_content=true'.format(hashtag_string, max_id or '', self.rank_token)
+        return self._send_request(url, {'tab': 'recent', 'supported_tabs': "['top','recent','places']"})
 
     def get_media_info(self, media_id):
         data = json.dumps({'media_id': media_id, **self._get_default_request_data()})
