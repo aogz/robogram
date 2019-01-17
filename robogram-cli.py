@@ -45,7 +45,7 @@ class RobogramCLI:
                     for media in medias:
                         action_done = False
                         media_id = media['media']['pk']
-                        if media['media']['user']['username'] not in processed_profiles:
+                        if all([media['media']['user']['username'] not in processed_profiles, media['media']['user']['username'] not in settings.IGNORE_LIST]):
                             if 'like' in actions:
                                 if not media['media']['has_liked']:
                                     client.like(media_id)
