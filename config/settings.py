@@ -14,6 +14,7 @@ EXPERIMENTS = 'ig_promote_reach_objective_fix_universe,ig_android_universe_video
 USERNAME = ''
 PASSWORD = ''
 COMMENTS = ['wow', 'awesome!', 'super!', 'amazing post', 'i like it', 'woooow', 'looks cool']
+IGNORE_LIST = []
 SLEEP_BETWEEN_ACTIONS = 10
 
 try:
