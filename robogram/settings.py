@@ -18,6 +18,6 @@ IGNORE_LIST = []
 SLEEP_BETWEEN_ACTIONS = 10
 
 try:
-    from .settings_local import *
+    from robogram.settings_local import *
 except ImportError:
     pass

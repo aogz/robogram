@@ -1,9 +1,6 @@
 import json
-import sys
-import urllib
-import requests
 
-from config import settings
+from robogram import settings
 from . import base
 
 

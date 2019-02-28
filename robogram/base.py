@@ -1,7 +1,6 @@
 import requests
 import hashlib
 import uuid
-import time
 import os
 import calendar
 import datetime
@@ -10,7 +9,7 @@ import hmac
 import urllib
 import urllib3
 
-from config import settings
+from robogram import settings
 
 urllib3.disable_warnings()
 

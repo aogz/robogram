@@ -1,11 +1,9 @@
 import fire
-import csv
-import json 
-import random 
+import random
 import time
 
-from api.client import InstagramAPIClient
-from config import settings
+from robogram.client import InstagramAPIClient
+from robogram import settings
 
 
 class RobogramCLI:
