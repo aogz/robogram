@@ -132,7 +132,7 @@ class RobogramCLI:
         try:
             response = self.client._validate_response(self.client.get_username_info(username))
         except Exception as e:
-            print('Can not  retrieve user info: {}'.format(e))
+            print('Can not retrieve user info: {}'.format(e))
             return
 
         if response['status'] == 'ok':
@@ -144,7 +144,7 @@ class RobogramCLI:
                 return
 
             if response['status'] == 'ok':
-                print('Сообщение отправлено')
+                print('Message sent')
             else:
                 print('Can not send message: {}'.format(response['status']))
         else:
