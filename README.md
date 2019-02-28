@@ -9,7 +9,7 @@ from client import InstagramAPIClient
 insta =  InstagramAPIClient('username', 'password')
 insta.login()
 
-profile = insta.get_self_username_info()
+profile = insta.get_self_user_id_info()
 followings = insta.get_self_users_following()
 followers = insta.get_self_users_followers()
 ```

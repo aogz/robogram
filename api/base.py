@@ -2,6 +2,9 @@ import requests
 import hashlib
 import uuid
 import time
+import os
+import calendar
+import datetime
 import json
 import hmac
 import urllib
@@ -10,6 +13,7 @@ import urllib3
 from config import settings
 
 urllib3.disable_warnings()
+
 
 class InstagramAPIBase:
 
@@ -74,7 +78,7 @@ class InstagramAPIBase:
 
     def _validate_response(self, response):
         if response.status_code == 200:
-            return json.loads(response.text)
+            return response.json()
         else:
             raise Exception("Request return " + str(response.status_code) + " error!")
 
@@ -110,3 +114,25 @@ class InstagramAPIBase:
 
     def get_recent_activity(self):
         return self._send_request('news/inbox/?')
+
+    def _generate_upload_id(self):
+        return str(calendar.timegm(datetime.datetime.utcnow().utctimetuple()))
+
+    def _build_body(self, bodies, boundary):
+        body = ''
+        for b in bodies:
+            body += '--{boundary}\r\n'.format(boundary=boundary)
+            body += 'Content-Disposition: {b_type}; name="{b_name}"'.format(b_type=b['type'], b_name=b['name'])
+            _filename = b.get('filename', None)
+
+            _headers = b.get('headers', None)
+            if _filename:
+                _filename, ext = os.path.splitext(_filename)
+                body += '; filename="pending_media_{uid}.{ext}"'.format(uid=self._generate_upload_id(), ext=ext)
+            if _headers and isinstance(_headers, list):
+                for h in _headers:
+                    body += '\r\n{header}'.format(header=h)
+            body += '\r\n\r\n{data}\r\n'.format(data=b['data'])
+        body += '--{boundary}--'.format(boundary=boundary)
+
+        return body

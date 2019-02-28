@@ -1,6 +1,7 @@
 import json
 import sys
 import urllib
+import requests
 
 from config import settings
 from . import base
@@ -26,13 +27,15 @@ class InstagramAPIClient(base.InstagramAPIBase):
                 if self._validate_response(response):
                     print('Logged in!')
                     self._post_login(response)
-                
 
-    def get_username_info(self, username_id):
-        return self._send_request('users/{}/info/'.format(username_id))
+    def get_user_id_info(self, user_id):
+        return self._send_request('users/{}/info/'.format(user_id))
 
-    def get_self_username_info(self):
-        return self.get_username_info(self.username_id)
+    def get_username_info(self, username):
+        return self._send_request('users/{}/usernameinfo/'.format(username))
+
+    def get_self_user_id_info(self):
+        return self.get_user_id_info(self.username_id)
 
     def like(self, media_id):
         data = json.dumps({'media_id': media_id, **self._get_default_request_data()})
@@ -85,3 +88,55 @@ class InstagramAPIClient(base.InstagramAPIBase):
     def get_media_info(self, media_id):
         data = json.dumps({'media_id': media_id, **self._get_default_request_data()})
         return self._send_request('media/{}/info/'.format(media_id), self._generate_signature(data))
+
+    def get_user_feed(self, username_id, max_id=''):
+        url = 'feed/user/{}/?max_id={}&rank_token={}&ranked_content=true'.format(username_id, max_id, self.rank_token)
+        return self._send_request(url)
+
+    # def get_user_info(self, username):
+    #     return self.session.get('https://instagram.com/{}/?__a=1'.format(username))
+
+    def direct_message(self, recipients, message):
+        if not isinstance(recipients, list):
+            recipients = [recipients]
+
+        recipient_users = '"",""'.join(map(str, recipients))
+
+        url = 'direct_v2/threads/broadcast/text/'
+        bodies = [
+            {
+                'type': 'form-data',
+                'name': 'recipient_users',
+                'data': '[["{}"]]'.format(recipient_users),
+            },
+            {
+                'type': 'form-data',
+                'name': 'client_context',
+                'data': self.uuid,
+            },
+            {
+                'type': 'form-data',
+                'name': 'thread',
+                'data': '["0"]',
+            },
+            {
+                'type': 'form-data',
+                'name': 'text',
+                'data': message,
+            },
+        ]
+
+        data = self._build_body(bodies, self.uuid)
+
+        self.session.headers.update(
+            {
+                'User-Agent': settings.USER_AGENT,
+                'Proxy-Connection': 'keep-alive',
+                'Connection': 'keep-alive',
+                'Accept': '*/*',
+                'Content-Type': 'multipart/form-data; boundary={}'.format(self.uuid),
+                'Accept-Language': 'en-en',
+            }
+        )
+
+        return self.session.post(settings.API_URL + url, data=data.encode())

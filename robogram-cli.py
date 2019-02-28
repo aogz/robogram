@@ -1,4 +1,5 @@
 import fire
+import csv
 import json 
 import random 
 import time
@@ -9,19 +10,18 @@ from config import settings
 
 class RobogramCLI:
 
-    def __login(self, username=None, password=None):
-        username = username or settings.USERNAME
-        password = password or settings.PASSWORD
+    def __init__(self, username=None, password=None):
+        self.username = username or settings.USERNAME
+        self.password = password or settings.PASSWORD
 
-        if not all([username, password]):
+        if not all([self.username, self.password]):
             raise Exception('Both username and password are required. Either provide --username --password parameters or set them in config/settings.py')
 
-        client = InstagramAPIClient(username, password)
-        client.login()
-        return client
+        self.client = InstagramAPIClient(self.username, self.password)
+        self.client.login()
 
-    def __action_by_tag(self, actions, tag, limit=100, username=None, password=None):
-        client = self.__login()
+
+    def __action_by_tag(self, actions, tag, limit=100):
         more_available = True
         posts_processed = 0
         next_max_id = None
@@ -33,8 +33,8 @@ class RobogramCLI:
             actions = [actions]
 
         while more_available and posts_processed < limit:
-            response = client.get_hashtag_sections(tag, next_max_id)
-            feed = client._validate_response(response)
+            response = self.client.get_hashtag_sections(tag, next_max_id)
+            feed = self.client._validate_response(response)
 
             more_available = feed['more_available']
             next_max_id = feed['next_max_id']
@@ -48,7 +48,7 @@ class RobogramCLI:
                         if all([media['media']['user']['username'] not in processed_profiles, media['media']['user']['username'] not in settings.IGNORE_LIST]):
                             if 'like' in actions:
                                 if not media['media']['has_liked']:
-                                    client.like(media_id)
+                                    self.client.like(media_id)
                                     print('Media #{} from @{} liked.'.format(media['media']['pk'], media['media']['user']['username']))
                                     time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
                                     action_done = True
@@ -56,9 +56,9 @@ class RobogramCLI:
                                     print('Media #{} from @{} NOT liked. (Already liked)'.format(media['media']['pk'], media['media']['user']['username']))
 
                             if 'comment' in actions:
-                                if client.username_id not in [comment['user_id'] for comment in media['media'].get('preview_comments', [])]:
+                                if self.client.username_id not in [comment['user_id'] for comment in media['media'].get('preview_comments', [])]:
                                     comment = random.choice(settings.COMMENTS)
-                                    client.comment(media_id, comment)
+                                    self.client.comment(media_id, comment)
                                     print('Media #{} from @{} commented: {}.'.format(media['media']['pk'], media['media']['user']['username'], comment))
                                     time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
                                     action_done = True
@@ -70,7 +70,7 @@ class RobogramCLI:
                                 following = media['media']['user']['friendship_status']['following']
                                 outgoing_request = media['media']['user']['friendship_status']['outgoing_request']
                                 if not following and not outgoing_request:
-                                    client.follow(user_id)
+                                    self.client.follow(user_id)
                                     print('User @{} followed.'.format(media['media']['user']['username']))
                                     time.sleep(settings.SLEEP_BETWEEN_ACTIONS)
                                     action_done = True
@@ -84,17 +84,71 @@ class RobogramCLI:
 
         print('Task finished. {} posts processed.'.format(posts_processed))
 
-    def like_by_tag(self, tag, limit=100, username=None, password=None):
-        return self.__action_by_tag('like', tag, limit, username, password)
+    def like_by_tag(self, tag, limit=100):
+        return self.__action_by_tag('like', tag, limit)
 
-    def comment_by_tag(self, tag, limit=100, username=None, password=None):
-        return self.__action_by_tag('comment', tag, limit, username, password)
+    def comment_by_tag(self, tag, limit=100):
+        return self.__action_by_tag('comment', tag, limit)
 
-    def comment_and_like_by_tag(self, tag, limit=100, username=None, password=None):
-        return self.__action_by_tag(['comment', 'like'], tag, limit, username, password)
+    def comment_and_like_by_tag(self, tag, limit=100):
+        return self.__action_by_tag(['comment', 'like'], tag, limit)
 
-    def follow_by_tag(self, tag, limit=100, username=None, password=None, **kwargs):
-        return self.__action_by_tag('follow', tag, limit, username, password)
+    def follow_by_tag(self, tag, limit=100, **kwargs):
+        return self.__action_by_tag('follow', tag, limit)
+
+    def user_info(self, username):
+        try:
+            response = self.client._validate_response(self.client.get_username_info(username))
+        except Exception as e:
+            print('Can not send retrieve user info: {}'.format(e))
+        else:
+            if response['status'] == 'ok':
+                user_id = response['user']['pk']
+                user_name = response['user']['full_name']
+                user_bio = response['user']['biography']
+                user_link = response['user']['external_url']
+                is_private = response['user']['is_private']
+                is_verified = response['user']['is_verified']
+                follower_count = response['user']['follower_count']
+                following_count = response['user']['following_count']
+                following_tag_count = response['user']['following_tag_count']
+                media_count = response['user']['media_count']
+
+                print("User ID: {}".format(user_id))
+                print("User Name: {}".format(user_name))
+                print("User Bio: {}".format(user_bio))
+                print("User Link: {}".format(user_link))
+                print("User is private: {}".format('Yes' if is_private else 'No'))
+                print("User is verified: {}".format('Yes' if is_verified else 'No'))
+                print("User followers: {}".format(follower_count))
+                print("User following: {}".format(following_count))
+                print("User following tags: {}".format(following_tag_count))
+                print("User Media: {}".format(media_count))
+
+            else:
+                print('Can not  retrieve user info: {}'.format(response['status']))
+
+    def direct_message(self, username, message):
+        try:
+            response = self.client._validate_response(self.client.get_username_info(username))
+        except Exception as e:
+            print('Can not  retrieve user info: {}'.format(e))
+            return
+
+        if response['status'] == 'ok':
+            user_id = response['user']['pk']
+            try:
+                response = self.client._validate_response(self.client.direct_message(user_id, message))
+            except Exception as e:
+                print('Can not send message: {}'.format(e))
+                return
+
+            if response['status'] == 'ok':
+                print('Сообщение отправлено')
+            else:
+                print('Can not send message: {}'.format(response['status']))
+        else:
+            print('Can not retrieve user info: {}'.format(response['status']))
 
 
 if __name__ == '__main__':
