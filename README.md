@@ -49,11 +49,11 @@ python robogram-cli.py direct-message zuck 'Hi, how are you?'
 ```
 
 
-```
+
 
 ### API Usage example: 
 ```
-from client import InstagramAPIClient
+from robogram.client import InstagramAPIClient
 
 insta =  InstagramAPIClient('username', 'password')
 insta.login()
