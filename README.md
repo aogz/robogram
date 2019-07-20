@@ -52,7 +52,7 @@ python robogram-cli.py direct-message zuck 'Hi, how are you?'
 ```
 
 ### API Usage example: 
-```python
+```
 from client import InstagramAPIClient
 
 insta =  InstagramAPIClient('username', 'password')
