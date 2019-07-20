@@ -6,6 +6,7 @@ Can be used for promoting your account. (mass-like, mass-comment, mass-follow, m
 ```python
 git clone git@github.com:aogz/robogram.git
 cd robogram
+mkvirtualenv robogram  # Alternatively, virtualenv venv && source venv/bin/activate
 pip install -r requirements.txt
 ```
 
