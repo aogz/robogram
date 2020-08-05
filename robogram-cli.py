@@ -126,6 +126,18 @@ class RobogramCLI:
             else:
                 print('Can not  retrieve user info: {}'.format(response['status']))
 
+    def stories(self, username):
+        try:
+            response = self.client._validate_response(self.client.get_username_info(username))
+        except Exception as e:
+            print('Can not send retrieve user info: {}'.format(e))
+        else:
+            if response['status'] == 'ok':
+                response = self.client.stories(response['user']['pk'])
+                data = response.json()
+                for story in data['reel']['items']:
+                    print(story['image_versions2']['candidates'][0]['url'])
+
     def direct_message(self, username, message):
         try:
             response = self.client._validate_response(self.client.get_username_info(username))

@@ -54,6 +54,9 @@ class InstagramAPIClient(base.InstagramAPIBase):
         data = json.dumps({'comment_text': text, **self._get_default_request_data()})
         return self._send_request('media/{}/comment/'.format(media_id), self._generate_signature(data))
 
+    def stories(self, user_id):
+        return self._send_request("feed/user/{}/story/".format(user_id))
+
     def get_user_followings(self, username_id, max_id=None):
         url = 'friendships/{}/following/?ig_sig_key_version={}&rank_token={}'.format(username_id, settings.SIG_KEY_VERSION, self.rank_token)
         if max_id:
